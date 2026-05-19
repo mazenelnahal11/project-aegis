@@ -9,6 +9,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Login } from "./pages/Login";
 import { Permissions } from "./pages/Permissions";
 import { Processes } from "./pages/Processes";
+import { Warnings } from "./pages/Warnings";
 import { useAuth } from "./stores/auth";
 import { useGates } from "./stores/gates";
 
@@ -37,6 +38,7 @@ function Shell() {
             <NavLink to="/" end className={linkCls}>Dashboard</NavLink>
             <NavLink to="/processes" className={linkCls}>Processes</NavLink>
             <NavLink to="/permissions" className={linkCls}>Permissions</NavLink>
+            <NavLink to="/warnings" className={linkCls}>Warnings</NavLink>
             <NavLink to="/audit" className={linkCls}>Audit Log</NavLink>
             <NavLink to="/copilot" className={linkCls}>Copilot</NavLink>
           </nav>
@@ -58,6 +60,7 @@ function Shell() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/processes" element={<Processes />} />
           <Route path="/permissions" element={<Permissions />} />
+          <Route path="/warnings" element={<Warnings />} />
           <Route path="/audit" element={<AuditLog />} />
           <Route path="/copilot" element={<Copilot />} />
           <Route path="*" element={<Navigate to="/" replace />} />

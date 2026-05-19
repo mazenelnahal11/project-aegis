@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..gates import create_gate
+from ..grace import create_warning
 from ..scripts.audit import read_audit_lines, summary_counts
 from ..scripts.permissions import scan_world_writable
 from ..scripts.process_hunter import list_processes
@@ -50,6 +51,30 @@ def execute_tool(
             "gate_id": gate["id"],
             "kind": "kill",
             "preview": f"kill -15 {pid}; sleep 10; kill -9 {pid} (if alive)",
+            "requires_confirmation": True,
+            "executed": False,
+        }
+
+    if name == "propose_warn_then_kill":
+        pid = int(args["pid"])
+        gate = create_gate(
+            kind="warn_then_kill",
+            payload={
+                "pid": pid,
+                "reason": args.get("reason", ""),
+                "grace_minutes": int(args.get("grace_minutes", 0)) or None,
+            },
+            origin="llm",
+            chat_session_id=chat_session_id,
+            tool_use_id=tool_use_id,
+        )
+        return {
+            "gate_id": gate["id"],
+            "kind": "warn_then_kill",
+            "preview": (
+                f"Send Slack warning to PID {pid}'s owner, then auto-create a kill "
+                f"gate after {args.get('grace_minutes', 30)} minutes if ignored."
+            ),
             "requires_confirmation": True,
             "executed": False,
         }

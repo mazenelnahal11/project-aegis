@@ -64,8 +64,11 @@ TOOLS = [
     {
         "name": "propose_kill_process",
         "description": (
-            "Propose terminating a process. This DOES NOT kill it — it creates a pending "
-            "action the human must approve. Returns gate_id and requires_confirmation=true."
+            "Propose IMMEDIATELY terminating a process (no user warning). Use this only "
+            "for clearly unrecoverable cases: zombie/stopped state, malicious processes, "
+            "or when the user has already been warned. Does NOT kill on its own — creates "
+            "a pending action the human admin must approve. Prefer propose_warn_then_kill "
+            "when the owner might reasonably want their process to keep running."
         ),
         "input_schema": {
             "type": "object",
@@ -75,6 +78,34 @@ TOOLS = [
                 "reason": {
                     "type": "string",
                     "description": "Plain-English justification shown in the confirmation modal.",
+                },
+            },
+        },
+    },
+    {
+        "name": "propose_warn_then_kill",
+        "description": (
+            "Propose a polite two-step termination: send the process owner a Slack DM "
+            "with a grace window (default 30 minutes), and if they don't respond, "
+            "escalate to a regular kill gate. PREFER THIS TOOL over propose_kill_process "
+            "for long-running but otherwise healthy student/researcher jobs — most "
+            "shared-server problems are solved by talking to the human first. Does NOT "
+            "send the DM on its own; creates a pending action the admin approves first."
+        ),
+        "input_schema": {
+            "type": "object",
+            "required": ["pid", "reason"],
+            "properties": {
+                "pid": {"type": "integer", "minimum": 2},
+                "reason": {
+                    "type": "string",
+                    "description": "Plain-English justification that will appear in the Slack DM.",
+                },
+                "grace_minutes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1440,
+                    "description": "How long the owner has to respond (default 30).",
                 },
             },
         },

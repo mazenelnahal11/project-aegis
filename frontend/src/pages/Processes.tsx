@@ -25,9 +25,20 @@ export function Processes() {
   });
 
   const onKill = async (pid: number, reason: string) => {
-    const res = await postJson<{ gate_id: number }>("/api/act/kill", { pid, reason });
+    const res = await postJson<{ gate_id: number }>("/api/act/kill", {
+      pid, reason, mode: "immediate",
+    });
     const gate = await api<Gate>(`/api/gates/${res.gate_id}`);
     setActive(gate);
+  };
+
+  const onWarn = async (pid: number, reason: string) => {
+    await postJson<{ warning_id: number }>("/api/act/kill", {
+      pid, reason, mode: "warn_then_kill",
+    });
+    // No modal — the warning shows up on the /warnings page and recipients
+    // get a Slack DM. Surface a toast-style alert for now.
+    alert("Grace warning sent. The user has 30 minutes to acknowledge.");
   };
 
   return (
@@ -92,14 +103,25 @@ export function Processes() {
                 <td className="px-3 py-2">{p.state}</td>
                 <td className="px-3 py-2 font-mono text-xs">{p.command}</td>
                 <td className="px-3 py-2">
-                  <button
-                    onClick={() =>
-                      onKill(p.pid, p.flagged ? p.reasons.join(" | ") : "manual")
-                    }
-                    className="text-xs px-2 py-1 rounded border border-err text-err hover:bg-err hover:text-white"
-                  >
-                    Terminate
-                  </button>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() =>
+                        onWarn(p.pid, p.flagged ? p.reasons.join(" | ") : "policy review")
+                      }
+                      className="text-xs px-2 py-1 rounded border border-warn text-warn hover:bg-warn hover:text-ink"
+                      title="Send a Slack warning; auto-escalate to kill gate if ignored"
+                    >
+                      Warn
+                    </button>
+                    <button
+                      onClick={() =>
+                        onKill(p.pid, p.flagged ? p.reasons.join(" | ") : "manual")
+                      }
+                      className="text-xs px-2 py-1 rounded border border-err text-err hover:bg-err hover:text-white"
+                    >
+                      Kill
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

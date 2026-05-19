@@ -9,7 +9,7 @@ from .db import conn, dumps, loads, now_iso, tx
 from .scripts.permissions import fix_permission
 from .scripts.terminator import terminate_pid
 
-Kind = Literal["kill", "fix_permission"]
+Kind = Literal["kill", "fix_permission", "warn_then_kill"]
 Status = Literal["pending", "approved", "rejected", "executed", "failed"]
 
 
@@ -110,6 +110,29 @@ def approve_and_execute(gate_id: int) -> Gate:
         elif gate["kind"] == "fix_permission":
             result = fix_permission(payload["path"], payload["mode"])
             status = "executed" if result.get("outcome") == "fixed" else "failed"
+        elif gate["kind"] == "warn_then_kill":
+            # Approving this kind sends the Slack warning. The eventual kill
+            # still needs admin approval — the grace sweeper escalates to a
+            # second 'kill' gate if the owner doesn't respond.
+            from .grace import create_warning  # local to avoid cycle
+            from .scripts.process_hunter import list_processes
+            pid = int(payload["pid"])
+            owner = next((p.user for p in list_processes() if p.pid == pid), "(unknown)")
+            w = create_warning(
+                target_kind="kill",
+                target_payload={"pid": pid},
+                owner_linux_user=owner,
+                reason=payload.get("reason", "policy review"),
+                grace_minutes=payload.get("grace_minutes"),
+                origin="llm",
+            )
+            result = {
+                "warning_id": w["id"],
+                "owner": owner,
+                "expires_at": w["expires_at"],
+                "channel": w["channel"],
+            }
+            status = "executed"
         else:
             raise ValueError(f"unknown kind: {gate['kind']}")
     except Exception as e:
