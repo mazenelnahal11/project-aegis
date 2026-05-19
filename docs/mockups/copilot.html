@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #0d1117;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #c9d1d9; }
+  body { width: 1200px; height: 675px; padding: 24px; box-sizing: border-box; }
+  .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px;
+    height: 100%; }
+  .panel { background: #161b22; border: 1px solid #30363d;
+    border-radius: 10px; padding: 16px; display: flex; flex-direction: column; }
+  .panel h2 { margin: 0 0 6px; color: #58a6ff; font-size: 16px; }
+  .panel .sub { color: #8b949e; font-size: 12px; margin: 0 0 14px; }
+  .chat { flex: 1; display: flex; flex-direction: column; gap: 12px;
+    overflow: hidden; }
+  .msg-u { align-self: flex-end; background: rgba(88,166,255,.2);
+    border: 1px solid rgba(88,166,255,.4); padding: 8px 12px; border-radius: 8px;
+    max-width: 75%; font-size: 14px; }
+  .msg-a { background: #0d1117; border: 1px solid #30363d;
+    padding: 10px 14px; border-radius: 8px; max-width: 80%;
+    font-size: 14px; line-height: 1.5; }
+  .tool { font-family: "JetBrains Mono", Consolas, monospace;
+    font-size: 12px; color: #8b949e; }
+  .tool .arrow { color: #58a6ff; }
+  .input { display: flex; gap: 8px; margin-top: 8px; }
+  .input input { flex: 1; background: #0d1117; border: 1px solid #30363d;
+    border-radius: 6px; padding: 9px 12px; color: #c9d1d9; font-size: 13px; }
+  .input button { background: #58a6ff; color: #0d1117; border: 0;
+    padding: 9px 18px; border-radius: 6px; font-weight: 700; }
+  .side h3 { font-size: 11px; color: #8b949e; text-transform: uppercase;
+    letter-spacing: .04em; font-weight: 700; margin: 0 0 12px; }
+  .gate { background: #0d1117; border: 1px solid #30363d; border-radius: 6px;
+    padding: 9px 12px; margin-bottom: 10px; font-size: 12px; cursor: pointer; }
+  .gate code { font-family: "JetBrains Mono", Consolas, monospace; color: #c9d1d9; }
+  .gate .meta { color: #6e7681; font-size: 10.5px; margin-top: 4px; }
+  .pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: #e3b341; margin-right: 6px; }
+</style></head>
+<body>
+  <div class="grid">
+    <div class="panel">
+      <h2>Copilot</h2>
+      <div class="sub">Multi-provider LLM · Mistral · gated tool use</div>
+      <div class="chat">
+        <div class="msg-u">who is hogging the CPU? if anyone has been running for more than 24h, propose warning them</div>
+        <div class="tool"><span class="arrow">→</span> list_processes(<span style="color:#e3b341">only_flagged</span>=true)</div>
+        <div class="msg-a"><b>1 rogue process found</b><br>
+          <b>PID 4821</b> (<code>alice</code>) — <code>python train.py</code> — running <b>26 h</b>, <b>92 % CPU</b>, 12 % RAM.<br>
+          Long runtime on a student account. I'll propose a 30-minute warning with the reason "27 h training run".</div>
+        <div class="tool"><span class="arrow">→</span> propose_warn_then_kill(<span style="color:#e3b341">pid</span>=4821, <span style="color:#e3b341">reason</span>="27h training run on shared GPU server", <span style="color:#e3b341">grace_minutes</span>=30)</div>
+        <div class="tool" style="color:#3fb950"><span class="arrow">←</span> gate_id=42, requires_confirmation=true</div>
+        <div class="msg-a">Proposal #42 created — <b>not yet executed</b>. Approve it in the sidebar →
+          Slack DMs <code>alice</code> with a 30-minute window to acknowledge or extend before the kill is scheduled.</div>
+      </div>
+      <div class="input">
+        <input value="" placeholder="Ask Aegis…">
+        <button>Send</button>
+      </div>
+    </div>
+    <div class="panel side">
+      <h3>Pending confirmations</h3>
+      <div class="gate">
+        <div><span class="pulse"></span><code>warn-then-kill 4821</code></div>
+        <div class="meta">#42 · llm · 30 min grace · alice</div>
+      </div>
+      <div class="gate">
+        <div><span class="pulse"></span><code>chmod 644 /home/alice/api_keys.txt</code></div>
+        <div class="meta">#41 · ui · world-writable secret</div>
+      </div>
+      <div class="gate">
+        <div><span class="pulse"></span><code>kill 9133</code></div>
+        <div class="meta">#40 · ui · stress-ng anomaly</div>
+      </div>
+    </div>
+  </div>
+</body></html>

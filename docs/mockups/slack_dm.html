@@ -1,0 +1,63 @@
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #1a1d21; font-family:
+    -apple-system, "Segoe UI", Roboto, sans-serif; color: #d1d2d3; }
+  body { width: 1200px; height: 675px; display: flex; align-items: center;
+         justify-content: center; box-sizing: border-box; padding: 40px; }
+  .stage { width: 100%; max-width: 720px; }
+  .chan { color: #8d8e91; font-size: 13px; margin-bottom: 18px;
+          display: flex; align-items: center; gap: 8px; }
+  .chan b { color: #fff; font-weight: 700; }
+  .msg { display: flex; gap: 12px; padding: 8px 16px; border-radius: 8px; }
+  .msg:hover { background: #222529; }
+  .avatar { width: 40px; height: 40px; border-radius: 8px; background:
+    #58a6ff; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0; }
+  .body { flex: 1; }
+  .name { font-weight: 700; color: #fff; font-size: 15px; }
+  .time { color: #8d8e91; font-size: 12px; margin-left: 8px; font-weight: 400; }
+  .app  { background: #5b5f66; color: #fff; padding: 1px 4px; border-radius:
+    3px; font-size: 10px; font-weight: 700; margin-left: 4px;
+    vertical-align: middle; }
+  .card { margin-top: 4px; border-left: 3px solid #58a6ff;
+    background: #222529; padding: 12px 16px; border-radius: 0 6px 6px 0;
+    max-width: 540px; }
+  .card .h { font-size: 18px; font-weight: 800; color: #fff;
+             margin-bottom: 10px; }
+  .card .row { font-size: 14px; line-height: 1.6; color: #d1d2d3; }
+  .card .row b { color: #fff; }
+  .card .row code { background: #1a1d21; padding: 1px 6px; border-radius: 4px;
+    font-family: "JetBrains Mono", Consolas, monospace; font-size: 13px;
+    color: #e3b341; }
+  .mention { background: rgba(88,166,255,.15); color: #58a6ff;
+    padding: 0 3px; border-radius: 3px; }
+  .btn { display: inline-block; margin-top: 12px; background: #007a5a;
+    color: #fff; padding: 9px 16px; border-radius: 4px; font-size: 14px;
+    font-weight: 700; text-decoration: none; }
+  .ctx { font-size: 12px; color: #8d8e91; margin-top: 8px; }
+</style></head>
+<body>
+  <div class="stage">
+    <div class="chan">🔒 <b>#shared-server-ops</b></div>
+    <div class="msg">
+      <div class="avatar">🛡</div>
+      <div class="body">
+        <div>
+          <span class="name">Aegis</span>
+          <span class="app">APP</span>
+          <span class="time">10:03 AM</span>
+        </div>
+        <div class="card">
+          <div class="h">🛡  Aegis — process flagged</div>
+          <div class="row"><span class="mention">@alice</span> <b>PID 4821 will be terminated</b></div>
+          <div class="row" style="margin-top:8px"><b>Reason:</b> Runtime 26h (≥ 24h), CPU 92% (≥ 80%)</div>
+          <div class="row"><b>Deadline:</b> <code>2026-05-19 10:33 UTC</code></div>
+          <a class="btn" href="#">Acknowledge / extend</a>
+          <div class="ctx">Linux user: <code>alice</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body></html>

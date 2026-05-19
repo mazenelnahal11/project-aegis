@@ -1,0 +1,73 @@
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; padding: 0; background: #0d1117;
+    font-family: "JetBrains Mono", Consolas, monospace; color: #c9d1d9; }
+  body { width: 1200px; height: 675px; padding: 40px; box-sizing: border-box;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; }
+  .title { font-family: ui-sans-serif, system-ui, sans-serif;
+    color: #8b949e; font-size: 14px; margin-bottom: 18px; text-align: center; }
+  .title b { color: #58a6ff; font-weight: 700; }
+  .row { display: flex; gap: 18px; width: 100%; max-width: 1080px; }
+  .term { flex: 1; background: #161b22; border: 1px solid #30363d;
+    border-radius: 10px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+  .bar { background: #21262d; padding: 8px 14px; display: flex;
+    align-items: center; gap: 7px; font-size: 12px; color: #8b949e; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .r { background: #ff5f57; } .y { background: #febc2e; } .g { background: #28c840; }
+  .body { padding: 18px 22px; font-size: 15px; line-height: 1.55; }
+  .prompt { color: #3fb950; }
+  .at { color: #58a6ff; }
+  .ok  { color: #3fb950; }
+  .bad { color: #f85149; }
+  .dim { color: #8b949e; }
+  .cmd { color: #e3b341; }
+  .muted { color: #6e7681; font-style: italic; }
+  .verdict { font-size: 17px; font-weight: 700; }
+</style></head>
+<body>
+  <div class="title">
+    <b>python -m app.cli verify-audit</b>
+    &nbsp;·&nbsp; the hash chain catches retroactive log edits
+  </div>
+  <div class="row">
+    <div class="term">
+      <div class="bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i>&nbsp;
+        <span class="dim">Before — ledger untouched</span></div>
+      <div class="body">
+        <div><span class="prompt">aegis@server</span><span class="at">:~/aegis$</span>
+          <span class="cmd">python -m app.cli verify-audit</span></div>
+        <div class="verdict ok" style="margin-top:14px">✓ Ledger intact (9 entries)</div>
+        <div style="margin-top:14px"><span class="prompt">aegis@server</span><span class="at">:~/aegis$</span>
+          <span class="cmd">tail -1 security_audit.signed.jsonl | jq .</span></div>
+        <div class="muted" style="margin-top:6px">{</div>
+        <div class="dim">&nbsp;&nbsp;"seq": 9,</div>
+        <div class="dim">&nbsp;&nbsp;"level": "INFO",</div>
+        <div class="dim">&nbsp;&nbsp;"message": "Process Hunter done",</div>
+        <div class="dim">&nbsp;&nbsp;"prev_hash": <span class="ok">"d25dac4afda790c7…"</span>,</div>
+        <div class="dim">&nbsp;&nbsp;"entry_hash": <span class="ok">"a8c7e1f4b09236a2…"</span></div>
+        <div class="muted">}</div>
+      </div>
+    </div>
+    <div class="term">
+      <div class="bar"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i>&nbsp;
+        <span class="dim">After — attacker rewrites one line</span></div>
+      <div class="body">
+        <div><span class="prompt">aegis@server</span><span class="at">:~/aegis$</span>
+          <span class="cmd">sed -i 's/SIGTERM sent/SIGTERM faked/' \\</span></div>
+        <div style="padding-left:1em"><span class="cmd">security_audit.signed.jsonl</span></div>
+        <div style="margin-top:14px"><span class="prompt">aegis@server</span><span class="at">:~/aegis$</span>
+          <span class="cmd">python -m app.cli verify-audit</span></div>
+        <div class="verdict bad" style="margin-top:14px">✗ Tampering detected!</div>
+        <div class="bad" style="margin-top:8px">&nbsp;&nbsp;first break at seq #6</div>
+        <div class="bad">&nbsp;&nbsp;reason: entry_hash mismatch</div>
+        <div class="dim">&nbsp;&nbsp;total entries scanned: 6</div>
+        <div style="margin-top:14px"><span class="prompt">aegis@server</span><span class="at">:~/aegis$</span>
+          <span class="cmd">echo $?</span></div>
+        <div class="bad">2</div>
+      </div>
+    </div>
+  </div>
+</body></html>

@@ -1,0 +1,35 @@
+flowchart LR
+    Slack[("💬  Slack")]
+    Browser([🌐 Browser])
+
+    subgraph Backend [FastAPI backend]
+        Routes[/REST + WS + SSE/]
+        Gates[(pending_actions<br/>gate table)]
+        Grace[Grace state<br/>machine]
+        Signer[Audit signer<br/>SHA-256 chain]
+        LLM[LLM provider<br/>Anthropic / Mistral / OpenAI / ...]
+        Notifier[Slack notifier]
+    end
+
+    subgraph Linux [Linux runtime]
+        Scripts[/bash scripts/]
+        BashLog[("security_audit.log")]
+        SignedLog[("security_audit.signed.jsonl")]
+    end
+
+    Browser <-->|HTTPS / WS| Routes
+    Routes <--> Gates
+    Routes <--> Grace
+    Grace --> Notifier --> Slack
+    Slack -.->|one-time ack URL| Routes
+    Routes -->|runner abstraction| Scripts
+    Scripts --> BashLog
+    BashLog -.->|tail| Signer --> SignedLog
+    LLM <-.->|tool calls| Routes
+
+    classDef proc fill:#161b22,stroke:#58a6ff,color:#c9d1d9;
+    classDef store fill:#0d1117,stroke:#30363d,color:#c9d1d9;
+    classDef ext fill:#22272e,stroke:#3fb950,color:#c9d1d9;
+    class Routes,Grace,Signer,LLM,Notifier,Scripts proc;
+    class Gates,BashLog,SignedLog store;
+    class Slack,Browser ext;
