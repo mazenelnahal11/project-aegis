@@ -1,0 +1,18 @@
+# Linux user ↔ Slack ID mapping used by the grace-period notifier.
+#
+# Look up your Slack ID:
+#   1. Open Slack
+#   2. Click your name → "View profile"
+#   3. Click ⋮ → "Copy member ID"
+#
+# The `default` entry is the fallback when a Linux username isn't in the map.
+# Point it at an admin's Slack ID so unmapped warnings still go *somewhere*.
+
+users:
+  default:
+    slack_id: U00000ADMIN     # change me
+
+  # alice:
+  #   slack_id: U01234ABCD
+  # bob:
+  #   slack_id: U05678EFGH

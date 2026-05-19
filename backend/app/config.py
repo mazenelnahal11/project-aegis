@@ -30,6 +30,14 @@ class Settings(BaseSettings):
 
     cors_origin: str = "http://localhost:5173"
 
+    # Grace / Slack
+    slack_webhook_url: str = ""
+    ack_base_url: str = "http://localhost:8000"
+    grace_default_minutes: int = 30
+    grace_extend_hours: int = 6  # how long a STOP click extends the process
+    users_yaml_path: Path = Path(__file__).resolve().parent / "policy" / "users.yaml"
+    grace_expiry_check_seconds: int = 30  # how often the background sweeper runs
+
     db_path: Path = Path(__file__).resolve().parent.parent / "aegis.db"
 
     @property

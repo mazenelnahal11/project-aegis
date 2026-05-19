@@ -37,6 +37,27 @@ CREATE TABLE IF NOT EXISTS chat_sessions (
     updated_at TEXT NOT NULL,
     messages_json TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS grace_warnings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    target_kind TEXT NOT NULL,         -- 'kill' | 'fix_permission'
+    target_payload TEXT NOT NULL,      -- JSON
+    owner_linux_user TEXT,
+    owner_slack_id TEXT,
+    channel TEXT NOT NULL,             -- 'slack' | 'null'
+    reason TEXT NOT NULL,
+    ack_token TEXT UNIQUE NOT NULL,
+    sent_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'sent',  -- sent | stop | explained | expired | escalated | failed
+    ack_at TEXT,
+    ack_action TEXT,                   -- 'stop' | 'explain'
+    ack_reason TEXT,
+    escalated_gate_id INTEGER REFERENCES pending_actions(id),
+    origin TEXT NOT NULL DEFAULT 'ui'  -- 'ui' | 'llm'
+);
+CREATE INDEX IF NOT EXISTS idx_grace_status_expires ON grace_warnings(status, expires_at);
+CREATE INDEX IF NOT EXISTS idx_grace_token ON grace_warnings(ack_token);
 """
 
 
