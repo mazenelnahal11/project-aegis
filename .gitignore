@@ -25,10 +25,11 @@ __pycache__/
 .venv/
 venv/
 
-# Node / Vite
+# Node / Vite / TypeScript
 node_modules/
 dist/
 .vite/
+*.tsbuildinfo
 
 # Editors / OS
 .vscode/
