@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 
 import { api } from "../api/client";
 import type { AuditLine } from "../api/types";
+import { IntegrityBadge } from "../components/IntegrityBadge";
 import { useAuditStream } from "../hooks/useAuditStream";
 
 const LEVEL_COLOR: Record<string, string> = {
@@ -42,14 +43,18 @@ export function AuditLog() {
           <h1 className="text-2xl font-bold text-accent">Audit Log</h1>
           <p className="text-muted text-sm">
             Live tail of <code className="text-text">security_audit.log</code>.
+            Each entry is hash-chained into a tamper-evident ledger.
           </p>
         </div>
-        <button
-          onClick={() => setShowReport((v) => !v)}
-          className="px-3 py-1 rounded border border-edge hover:bg-edge text-sm"
-        >
-          {showReport ? "Hide HTML report" : "Open HTML report"}
-        </button>
+        <div className="flex items-center gap-2">
+          <IntegrityBadge />
+          <button
+            onClick={() => setShowReport((v) => !v)}
+            className="px-3 py-1 rounded border border-edge hover:bg-edge text-sm"
+          >
+            {showReport ? "Hide HTML report" : "Open HTML report"}
+          </button>
+        </div>
       </div>
 
       {showReport && (

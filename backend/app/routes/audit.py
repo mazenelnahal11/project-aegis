@@ -3,6 +3,7 @@ import asyncio
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import HTMLResponse, PlainTextResponse
 
+from ..audit_signer import iter_signed, verify_chain
 from ..auth import COOKIE_NAME, decode_token, require_admin
 from ..config import settings
 from ..scripts.audit import generate_html_report, read_audit_lines, summary_counts
@@ -26,6 +27,19 @@ def get_summary() -> dict:
 def get_report() -> HTMLResponse:
     html = generate_html_report()
     return HTMLResponse(content=html)
+
+
+@router.get("/verify")
+def verify() -> dict:
+    """Walk the signed ledger and report integrity. Idempotent + cheap."""
+    return verify_chain()
+
+
+@router.get("/signed")
+def signed(limit: int = Query(200, le=2000)) -> dict:
+    """Recent entries from the signed ledger."""
+    entries = list(iter_signed())
+    return {"entries": entries[-limit:], "total": len(entries)}
 
 
 ws_router = APIRouter(tags=["audit-ws"])

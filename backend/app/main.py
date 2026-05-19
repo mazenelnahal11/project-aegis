@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .audit_signer import run_signer
 from .config import settings
 from .db import init_db
 from .grace import expire_overdue
@@ -29,14 +30,16 @@ async def _grace_sweeper() -> None:
 async def lifespan(app: FastAPI):
     init_db()
     sweeper = asyncio.create_task(_grace_sweeper())
+    signer = asyncio.create_task(run_signer())
     try:
         yield
     finally:
-        sweeper.cancel()
-        try:
-            await sweeper
-        except (asyncio.CancelledError, Exception):
-            pass
+        for t in (sweeper, signer):
+            t.cancel()
+            try:
+                await t
+            except (asyncio.CancelledError, Exception):
+                pass
 
 
 def create_app() -> FastAPI:
