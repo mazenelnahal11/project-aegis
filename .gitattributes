@@ -1,0 +1,10 @@
+* text=auto eol=lf
+
+# Force LF on shell scripts so they run under WSL/Linux regardless of host OS.
+*.sh text eol=lf
+
+# Binary
+*.png binary
+*.jpg binary
+*.gz binary
+*.docx binary
