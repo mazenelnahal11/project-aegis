@@ -19,16 +19,30 @@ class Settings(BaseSettings):
     wsl_distro: str = "Ubuntu"
     project_dir_wsl: str = "/mnt/c/Users/mazen/Downloads/aegis_final"
 
-    anthropic_api_key: str = ""
+    llm_provider: str = "anthropic"  # 'anthropic' | 'openai_compat'
+    llm_api_key: str = ""             # unified key for the active provider
     llm_model: str = "claude-sonnet-4-6"
+    llm_base_url: str = ""            # required for OpenAI-compatible providers
+
+    # Back-compat: prior env var name. Used as a fallback when llm_api_key is unset
+    # and llm_provider == 'anthropic'.
+    anthropic_api_key: str = ""
 
     cors_origin: str = "http://localhost:5173"
 
     db_path: Path = Path(__file__).resolve().parent.parent / "aegis.db"
 
     @property
+    def effective_llm_api_key(self) -> str:
+        if self.llm_api_key:
+            return self.llm_api_key
+        if self.llm_provider == "anthropic":
+            return self.anthropic_api_key
+        return ""
+
+    @property
     def llm_enabled(self) -> bool:
-        return bool(self.anthropic_api_key)
+        return bool(self.effective_llm_api_key)
 
 
 settings = Settings()

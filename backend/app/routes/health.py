@@ -12,5 +12,7 @@ def health() -> dict:
         "ok": True,
         "wsl": health_check(),
         "llm_enabled": settings.llm_enabled,
+        "llm_provider": settings.llm_provider if settings.llm_enabled else None,
         "llm_model": settings.llm_model if settings.llm_enabled else None,
+        "llm_base_url": settings.llm_base_url if settings.llm_enabled else None,
     }
