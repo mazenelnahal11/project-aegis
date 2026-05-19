@@ -6,7 +6,6 @@ from __future__ import annotations
 from typing import Any
 
 from ..gates import create_gate
-from ..grace import create_warning
 from ..scripts.audit import read_audit_lines, summary_counts
 from ..scripts.permissions import scan_world_writable
 from ..scripts.process_hunter import list_processes

@@ -1,0 +1,35 @@
+# Linux + bash + python + the audit scripts. The backend talks to its own
+# host (the container) via LocalRunner, so killing/scanning targets are
+# the synthetic processes the seed script spawns inside this same container.
+
+FROM python:3.13-slim AS base
+
+# Tools the bash scripts need + a couple for the demo (stress for fake load).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        bash coreutils findutils procps grep sed gawk \
+        gzip ca-certificates curl tini \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Backend deps (installed once at build time).
+COPY backend/pyproject.toml /app/backend/pyproject.toml
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir /app/backend
+
+# Project files.
+COPY backend /app/backend
+COPY scripts /app/scripts
+COPY aegis_master.sh demo_setup.sh /app/
+COPY docker/seed_rogue_demo.sh /usr/local/bin/seed-rogue-demo
+COPY docker/entrypoint.backend.sh /usr/local/bin/entrypoint
+RUN chmod +x /app/aegis_master.sh /app/demo_setup.sh /app/scripts/*.sh \
+             /usr/local/bin/seed-rogue-demo /usr/local/bin/entrypoint
+
+ENV AEGIS_RUNNER=local \
+    AEGIS_PROJECT_DIR=/app \
+    AEGIS_CORS_ORIGIN=http://localhost:5173 \
+    PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/entrypoint"]

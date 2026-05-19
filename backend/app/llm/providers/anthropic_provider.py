@@ -5,7 +5,7 @@ from typing import cast
 from anthropic import Anthropic
 
 from ...config import settings
-from ..messages import LLMResponse, Message, TextBlock, ToolUseBlock
+from ..messages import LLMResponse, Message, ToolUseBlock
 from ..system_prompt import SYSTEM_PROMPT
 from ..tools import TOOLS
 

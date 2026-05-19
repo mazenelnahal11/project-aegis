@@ -19,7 +19,6 @@ from ..llm.messages import (
     Message,
     TextBlock,
     ToolResultBlock,
-    ToolUseBlock,
 )
 from ..llm.providers import get_provider
 

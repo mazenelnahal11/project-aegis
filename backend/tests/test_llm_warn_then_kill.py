@@ -1,5 +1,4 @@
 """Tests for the propose_warn_then_kill tool path."""
-from unittest.mock import patch
 
 import pytest
 
@@ -14,7 +13,7 @@ def test_propose_warn_then_kill_creates_gate_not_warning():
     grace warning. Only after the admin approves the gate should the Slack
     DM go out — same invariant as everything else destructive.
     """
-    from app.gates import get_gate, list_gates
+    from app.gates import get_gate
     from app.grace import list_warnings
     from app.llm.executor import execute_tool
 

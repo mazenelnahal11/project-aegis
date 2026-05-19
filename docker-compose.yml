@@ -1,0 +1,46 @@
+# One-shot demo. `docker compose up --build` and open http://localhost:5173.
+#
+# Default admin password is `demo` (the hash is baked into the env so the
+# demo works without any setup). For real deployments, replace the hash with
+# `python -m app.cli hash-password` output and put it in an env_file instead.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    environment:
+      # bcrypt('demo') — generated for this compose file only. Replace via
+      # `python -m app.cli hash-password` + an env_file for real deployments.
+      AEGIS_ADMIN_PASSWORD_HASH: "$$2b$$12$$BmvnzJCKOANWNI.7sqZOWe8vGQ9hkvrH8brRzenVs9XNEQyPVsb.i"
+      AEGIS_JWT_SECRET: "demo-jwt-secret-rotate-me-rotate-me-rotate-me"
+      AEGIS_RUNNER: local
+      AEGIS_PROJECT_DIR: /app
+      AEGIS_CORS_ORIGIN: http://localhost:5173
+      AEGIS_ACK_BASE_URL: http://localhost:8000
+      # Optional — leave AEGIS_LLM_API_KEY blank to disable the Copilot tab.
+      AEGIS_LLM_PROVIDER: "${AEGIS_LLM_PROVIDER:-anthropic}"
+      AEGIS_LLM_API_KEY:  "${AEGIS_LLM_API_KEY:-}"
+      AEGIS_LLM_MODEL:    "${AEGIS_LLM_MODEL:-claude-sonnet-4-6}"
+      AEGIS_LLM_BASE_URL: "${AEGIS_LLM_BASE_URL:-}"
+      AEGIS_SLACK_WEBHOOK_URL: "${AEGIS_SLACK_WEBHOOK_URL:-}"
+    ports:
+      - "8000:8000"
+    volumes:
+      - aegis-logs:/app/logs
+    # The container needs to spawn + kill its own PIDs — give it a private
+    # PID namespace (the default) but enough caps for the kill primitives.
+    cap_add: ["SYS_PTRACE"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    depends_on: [backend]
+    ports:
+      - "5173:5173"
+    restart: unless-stopped
+
+volumes:
+  aegis-logs: {}

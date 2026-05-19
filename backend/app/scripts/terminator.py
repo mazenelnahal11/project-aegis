@@ -4,7 +4,6 @@ from __future__ import annotations
 import time
 from datetime import datetime
 
-from ..config import settings
 from ..wsl_bridge import run_inline
 from .audit import append_audit
 

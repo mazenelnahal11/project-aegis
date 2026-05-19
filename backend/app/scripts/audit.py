@@ -7,12 +7,11 @@ keeping the audit trail consistent across CLI and web triggers.
 from __future__ import annotations
 
 import re
-import shutil
-import subprocess
 from datetime import datetime
 
 from ..config import settings
-from ..wsl_bridge import read_file, run_inline, run_script
+from ..runners import get_runner
+from ..wsl_bridge import run_script  # back-compat
 from .models import AuditLine
 
 
@@ -20,36 +19,25 @@ _AUDIT_RE = re.compile(r"^\[(?P<ts>[^\]]+)\]\s+\[(?P<level>[A-Z]+)\]\s+(?P<msg>.
 
 
 def _log_path() -> str:
+    runner = get_runner()
+    if runner.name == "local":
+        from pathlib import Path
+        # Local: write to <project>/logs/security_audit.log
+        project = getattr(runner, "project_dir", Path.cwd())
+        return str(Path(project) / "logs" / "security_audit.log")
+    # WSL: bash log lives under the WSL-side path
     return f"{settings.project_dir_wsl}/logs/security_audit.log"
 
 
 def append_audit(level: str, message: str) -> None:
-    """Append a single entry. Matches the bash `log()` helper format exactly.
-
-    Implementation: stream the line to `tee -a LOG_PATH` over stdin so the
-    payload is never interpolated into a shell command.
-    """
+    """Append a single entry. Matches the bash `log()` helper format exactly."""
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{ts}] [{level}] {message}\n"
-    log_path = _log_path()
-
-    run_inline(["mkdir", "-p", log_path.rsplit("/", 1)[0]], timeout=5)
-
-    exe = shutil.which("wsl.exe") or shutil.which("wsl")
-    if not exe:
-        return
-    subprocess.run(
-        [exe, "-d", settings.wsl_distro, "--", "tee", "-a", log_path],
-        input=line,
-        text=True,
-        capture_output=True,
-        timeout=5,
-        check=False,
-    )
+    get_runner().write_file_append(_log_path(), line)
 
 
 def read_audit_lines(*, limit: int = 500, since: str | None = None) -> list[AuditLine]:
-    raw = read_file(_log_path())
+    raw = get_runner().read_file(_log_path())
     lines = raw.splitlines()
     parsed: list[AuditLine] = []
     for line in lines:
@@ -73,8 +61,14 @@ def generate_html_report() -> str:
     """Invoke `4_audit_logger.sh --report` then return the HTML body."""
     today = datetime.now().strftime("%Y-%m-%d")
     run_script("4_audit_logger", ["--report"], timeout=30)
-    report_path = f"{settings.project_dir_wsl}/logs/report_{today}.html"
-    return read_file(report_path)
+    runner = get_runner()
+    if runner.name == "local":
+        from pathlib import Path
+        project = getattr(runner, "project_dir", Path.cwd())
+        report_path = str(Path(project) / "logs" / f"report_{today}.html")
+    else:
+        report_path = f"{settings.project_dir_wsl}/logs/report_{today}.html"
+    return runner.read_file(report_path)
 
 
 def summary_counts() -> dict[str, int]:

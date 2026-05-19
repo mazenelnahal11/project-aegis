@@ -11,7 +11,6 @@ from __future__ import annotations
 import re
 from datetime import datetime
 
-from ..config import settings
 from ..wsl_bridge import read_file, run_inline, run_script
 from .models import ProcessRow, ScanResult
 

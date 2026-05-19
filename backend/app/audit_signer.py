@@ -22,12 +22,11 @@ import hashlib
 import json
 import logging
 import re
-import shutil
-import subprocess
 from pathlib import Path
 from typing import Iterator
 
-from .config import settings
+from .runners import get_runner
+from .scripts.audit import _log_path as _bash_log_path
 
 log = logging.getLogger("aegis.audit_signer")
 
@@ -38,10 +37,6 @@ _AUDIT_RE = re.compile(r"^\[(?P<ts>[^\]]+)\]\s+\[(?P<level>[A-Z]+)\]\s+(?P<msg>.
 
 def _signed_path() -> Path:
     return Path(__file__).resolve().parent.parent / "logs" / "security_audit.signed.jsonl"
-
-
-def _bash_log_wsl_path() -> str:
-    return f"{settings.project_dir_wsl}/logs/security_audit.log"
 
 
 def _canonical(seq: int, ts: str, level: str, message: str) -> str:
@@ -166,41 +161,28 @@ async def run_signer() -> None:
 
 
 async def _tail_once() -> None:
-    exe = shutil.which("wsl.exe") or shutil.which("wsl")
-    if not exe:
-        await asyncio.sleep(60)
-        return
+    runner = get_runner()
+    log_path = _bash_log_path()
 
-    # `tail -n +1 -F` starts at the beginning and follows. We dedupe by maintaining
-    # a count of *parsed* lines we've already signed.
+    # 1. Backfill: any lines already in the bash log we haven't signed yet.
     skip = sum(1 for _ in iter_signed())
-    proc = await asyncio.create_subprocess_exec(
-        exe, "-d", settings.wsl_distro, "--",
-        "tail", "-n", "+1", "-F", _bash_log_wsl_path(),
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.DEVNULL,
-    )
-
-    try:
-        assert proc.stdout is not None
-        parsed = 0
-        while True:
-            raw = await proc.stdout.readline()
-            if not raw:
-                break
-            line = raw.decode("utf-8", errors="replace").rstrip("\n")
-            m = _AUDIT_RE.match(line)
-            if not m:
-                continue
-            parsed += 1
-            if parsed <= skip:
-                continue
+    existing = runner.read_file(log_path)
+    parsed = 0
+    for line in existing.splitlines():
+        m = _AUDIT_RE.match(line)
+        if not m:
+            continue
+        parsed += 1
+        if parsed > skip:
             await asyncio.to_thread(
                 append_signed_entry, m.group("ts"), m.group("level"), m.group("msg"),
             )
-    finally:
-        try:
-            proc.terminate()
-            await proc.wait()
-        except ProcessLookupError:
-            pass
+
+    # 2. Live tail.
+    async for line in runner.tail_follow(log_path):
+        m = _AUDIT_RE.match(line)
+        if not m:
+            continue
+        await asyncio.to_thread(
+            append_signed_entry, m.group("ts"), m.group("level"), m.group("msg"),
+        )

@@ -1,13 +1,12 @@
 import asyncio
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, status
+from fastapi.responses import HTMLResponse
 
 from ..audit_signer import iter_signed, verify_chain
-from ..auth import COOKIE_NAME, decode_token, require_admin
+from ..auth import decode_token, require_admin
 from ..config import settings
 from ..scripts.audit import generate_html_report, read_audit_lines, summary_counts
-from ..wsl_bridge import run_inline
 
 router = APIRouter(prefix="/api/audit", tags=["audit"], dependencies=[Depends(require_admin)])
 

@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from app.gates import approve_and_execute, create_gate, get_gate, list_gates, reject_gate
+from app.gates import approve_and_execute, create_gate, list_gates, reject_gate
 
 
 def test_create_and_list_gate():
